@@ -7,6 +7,7 @@ const process = require("process");
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || "development";
 const config = require(__dirname + "/../config/config.json")[env];
+
 const db = {};
 
 let sequelize;
@@ -20,6 +21,15 @@ if (config.use_env_variable) {
     config
   );
 }
+
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log("✅ Database connection established successfully.");
+  })
+  .catch((error) => {
+    console.error("❌ Unable to connect to the database:", error);
+  });
 
 fs.readdirSync(__dirname)
   .filter(
@@ -39,8 +49,18 @@ Object.keys(db).forEach((modelName) => {
     db[modelName].associate(db);
   }
 });
-console.log(db.Bob, "-------------------------->>>>>>>>>>>>>>>>>.db");
+
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+db.sequelize
+  .sync() // { force: true } will drop tables; use only in dev!
+  .then(() => {
+    console.log("✅ Database synced!");
+    return;
+  })
+  .catch((error) => {
+    console.error("❌ Database sync error:", error);
+  });
 
 module.exports = { db };

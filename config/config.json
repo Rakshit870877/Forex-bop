@@ -1,10 +1,24 @@
 {
-  "development": {
+  "development1": {
     "username": "rakshit",
     "password": 12345,
     "database": "postgres",
     "host": "127.0.0.1",
     "dialect": "postgres"
+  },
+  "development": {
+    "username": "doadmin",
+    "password": "AVNS_xzyC5HsXTawenfBh8Y4",
+    "database": "defaultdb",
+    "host": "db-postgresql-blr1-15255-do-user-19732516-0.m.db.ondigitalocean.com",
+    "port": 25060,
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
   },
   "test": {
     "username": "root",
