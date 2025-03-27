@@ -272,7 +272,7 @@ router.delete("/deleteBop", async (req, res) => {
 //     res.status(500).json({ error: error.message });
 //   }
 // });
-router.get("/:transactionNumber/:transectionAttempt", async (req, res) => {
+router.get("/:transactionNumber", async (req, res) => {
   try {
     const { transactionNumber, transectionAttempt } = req.params;
 
