@@ -89,11 +89,24 @@ module.exports = (sequelize, DataTypes) => {
       benificiary_name: DataTypes.STRING,
       benificiary_city: DataTypes.STRING,
       account_identifier: DataTypes.STRING,
+      created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      sap_status: {
+        type: DataTypes.STRING,
+      },
     },
     {
       tableName: "forex_bop",
-      timestamps: false,
+      timestamps: true,
       freezeTableName: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     }
   );
 

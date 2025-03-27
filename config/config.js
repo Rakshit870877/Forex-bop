@@ -52,6 +52,5 @@ module.exports = {
         rejectUnauthorized: false,
       },
     },
-    use_env_variable: process.env.DB_DATABASE,
   },
 };

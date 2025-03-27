@@ -43,7 +43,7 @@ router.get("/:transactionNumber", async (req, res) => {
       return res.status(400).json({ error: "Transaction number is required" });
     }
 
-    const transaction = await db.forex_bop_category.findOne({
+    const transaction = await db.forex_bop_category.findAll({
       where: { transaction_number: transactionNumber },
     });
 

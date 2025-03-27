@@ -67,10 +67,26 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      created_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      bop_description: {
+        type: DataTypes.STRING,
+      },
+      bop_sub_category: {
+        type: DataTypes.STRING,
+      },
     },
     {
       timestamps: false,
       freezeTableName: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
     }
   );
 

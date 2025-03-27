@@ -12,7 +12,7 @@ app.get("/", (req, res) => {
   res.send("App is working!");
 });
 
-app.use("/bob", bobRouter);
+app.use("/bop", bobRouter);
 app.use("/bopCategory", bopCategoryRouter);
 app.get("/export", async (req, res) => {
   try {
