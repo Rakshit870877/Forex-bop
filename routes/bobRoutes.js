@@ -20,6 +20,7 @@ router.get("/getAll", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 router.post("/updateBopStatus", async (req, res) => {
   try {
     const { transactionNumber, status } = req.body;
@@ -50,72 +51,7 @@ router.post("/updateBopStatus", async (req, res) => {
   }
 });
 
-// router.post("/cancelReplaceTransaction", async (req, res) => {
-//   try {
-//     const { transaction_number } = req.body;
 
-//     if (!transaction_number) {
-//       return res.status(400).json({ error: "Transaction Number is required" });
-//     }
-
-//     // Find the existing transaction
-//     const transaction = await db.forex_bop.findOne({
-//       where: { transaction_number },
-//     });
-
-//     if (!transaction) {
-//       return res.status(404).json({ error: "Transaction not found" });
-//     }
-
-//     const latestTransaction = await db.forex_bop.findOne({
-//       where: { transaction_number },
-//       order: [["transaction_attempt", "DESC"]], // Get the highest transaction_attempt
-//     });
-
-//     console.log(
-//       latestTransaction.transaction_attempt + 1,
-//       "=================>>>>123"
-//     );
-
-//     const newTransactionAttempt = latestTransaction.transaction_attempt + 1;
-//     console.log(newTransactionAttempt, "------------------>>");
-
-//     const newTransactionData = {
-//       ...transaction.toJSON(),
-//       transaction_attempt: newTransactionAttempt,
-//       created_at: new Date(), // Ensure new timestamps
-//       updated_at: new Date(),
-//       postal_city: transaction.postal_city || "Unknown",
-//       postal_postcode: transaction.postal_postcode || 000000,
-//       postal_country: transaction.postal_country || "Unknown",
-//       id_type: transaction.id_type || "Unknown",
-//       id_details: transaction.id_details || "N/A",
-//       contact_type: transaction.contact_type || "N/A",
-//       contact_details: transaction.contact_details || "N/A",
-//     };
-
-//     // Remove `id` to avoid duplication
-//     delete newTransactionData.id;
-//     const result = await db.forex_bop_category.findAll({
-//       where: { transaction_number },
-//     });
-//     console.log("==-------------->>>", result);
-//     // Create a new row
-//     const newTransaction = await db.forex_bop.create(newTransactionData);
-//     const newCategory = {
-//       ...result.toJSON(),
-//       transaction_number: newTransactionAttempt,
-//     };
-//     const newCat = await db.forex_bop_category.create(newCategory);
-//     res.status(201).json({
-//       message: "New transaction created successfully",
-//       newTransaction,
-//       newCat,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
 router.post("/cancelReplaceTransaction", async (req, res) => {
   try {
     const { newBopData, newbopCategoryData } = req.body;
@@ -124,11 +60,6 @@ router.post("/cancelReplaceTransaction", async (req, res) => {
       return res.status(400).json({ error: "Transaction Number is required" });
     }
 
-    // console.log(
-    //   newBopData.latestTransaction.transaction_attempt,
-    //   "========================>>>jschsvghswguc"
-    // );
-    // Find the existing transaction
     const transaction = await db.forex_bop.findOne({
       where: { transaction_number: newBopData.transaction_number },
     });
@@ -142,10 +73,6 @@ router.post("/cancelReplaceTransaction", async (req, res) => {
       where: { transaction_number: newBopData.transaction_number },
       order: [["transaction_attempt", "DESC"]],
     });
-    // console.log(
-    //   newBopData.latestTransaction.transaction_attempt,
-    //   "========================>>>jschsvghswguc"
-    // );
 
     const newTransactionAttempt = latestTransaction
       ? latestTransaction.transaction_attempt + 1
@@ -280,7 +207,7 @@ router.get("/:transactionNumber", async (req, res) => {
       return res.status(400).json({ error: "Transaction Number is required" });
     }
 
-    const transaction = await db.forex_bop.findOne({
+    const transaction = await db.forex_bop.findAll({
       where: { transaction_number: transactionNumber },
     });
 
@@ -290,11 +217,115 @@ router.get("/:transactionNumber", async (req, res) => {
 
     res.status(200).json({
       message: "Transaction retrieved successfully",
-      data: transaction,
+      data: transaction[transaction.length - 1],
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
+// router.post("/release-bopdata", async (req, res) => {
+
+
+//   try {
+//     const { transaction_number, transaction_attempt, sap_status } = req.body;
+
+//     if (!transaction_number) {
+//       return res
+//         .status(400)
+//         .json({ error: "Transaction number is required" });
+//     }
+//     // if (!allowedStatuses.includes(status)) {
+//     //   return res.status(400).json({
+//     //     error: "Invalid status. Allowed values: pending, completed, approved",
+//     //   });
+//     // }
+//     console.log(sap_status, transaction_attempt, transaction_number,"body")
+//     const updated = await db.forex_bop.update(
+//       { sap_status },
+//       { where: { transaction_number, transaction_attempt } }
+//     );
+//     const bop_cd_data = {
+//       transaction_number,
+//       transaction_attempt,
+//       reported_to_central_bank: 'No',
+//       reserve_bank_status: 'Pending',
+//       number_of_errors_central_bank: 0,
+//       created_at: new Date(),
+//       updated_at: new Date(),
+//       reporting_date: new Date(),
+//       response_received_date: new Date(),
+//     }
+//     console.log(updated,"updated")
+//     const bob_cd = await db.forex_bop_cd.create(bop_cd_data);
+
+//     res.status(200).json({ message: "Data released successfully" });
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+router.post("/release-bopdata", async (req, res) => {
+  try {
+    const { transaction_number, transaction_attempt, sap_status } = req.body;
+
+    if (!transaction_number || !transaction_attempt) {
+      return res.status(400).json({ error: "Transaction number and attempt are required" });
+    }
+
+    console.log(sap_status, transaction_attempt, transaction_number, "body");
+
+    // Check if the record exists
+    const existing = await db.forex_bop.findOne({
+      where: { transaction_number, transaction_attempt },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: "No matching record found to update" });
+    }
+
+    // Update the existing record
+    console.log(sap_status, 'rakshit ------->>>>', transaction_number, transaction_attempt)
+    // const [updatedCount] = await db.forex_bop.update(
+    //   { sap_status,...existing.toJSON() },
+    //   { where: { transaction_number, transaction_attempt } }
+    // );
+    await db.forex_bop.update(
+      {
+        sap_status: sap_status,
+      },
+      {
+        where: {
+          transaction_number: transaction_number,
+          transaction_attempt: transaction_attempt,
+        },
+      }
+    );
+
+    // if (updatedCount === 0) {
+    //   return res.status(500).json({ message: "Update failed" });
+    // }
+
+    // Create related CD data only if update succeeded
+    const bop_cd_data = {
+      transaction_number,
+      transaction_attempt,
+      reported_to_central_bank: 'No',
+      reserve_bank_status: 'Pending',
+      number_of_errors_central_bank: 0,
+      created_at: new Date(),
+      updated_at: new Date(),
+      reporting_date: new Date(),
+      response_received_date: new Date(),
+    };
+
+    // const bob_cd = await db.forex_bop_cd.create(bop_cd_data);
+
+    res.status(200).json({ message: "Data released and CD created successfully" });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 module.exports = router;
