@@ -31,7 +31,7 @@ db.sequelize
   .sync()
   .then(() => {
     console.log("✅ Database connected and synced.");
-    const PORT = 9000;
+    const PORT = process.env.PORT || 9000;
     app.listen(PORT, () => {
       console.log("🚀 Server is running on port", PORT);
     });
