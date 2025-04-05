@@ -100,6 +100,10 @@ module.exports = (sequelize, DataTypes) => {
       sap_status: {
         type: DataTypes.STRING,
       },
+      contact_type: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
     {
       tableName: "forex_bop",

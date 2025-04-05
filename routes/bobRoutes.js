@@ -23,22 +23,22 @@ router.get("/getAll", async (req, res) => {
 
 router.post("/updateBopStatus", async (req, res) => {
   try {
-    const { transactionNumber, status } = req.body;
+    const { transaction_number, sap_status } = req.body;
 
-    if (!transactionNumber || !status) {
+    if (!transaction_number) {
       return res
         .status(400)
         .json({ error: "transactionNumber and status are required" });
     }
-    if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({
-        error: "Invalid status. Allowed values: pending, completed, approved",
-      });
-    }
+    // if (!allowedStatuses.includes(status)) {
+    //   return res.status(400).json({
+    //     error: "Invalid status. Allowed values: pending, completed, approved",
+    //   });
+    // }
 
     const updated = await db.forex_bop.update(
-      { status },
-      { where: { transactionNumber } }
+      { sap_status },
+      { where: { transaction_number } }
     );
 
     if (updated[0] === 0) {
@@ -51,10 +51,10 @@ router.post("/updateBopStatus", async (req, res) => {
   }
 });
 
-
 router.post("/cancelReplaceTransaction", async (req, res) => {
   try {
     const { newBopData, newbopCategoryData } = req.body;
+    console.log(newBopData.transaction_number, "===============>>>araea");
 
     if (!newBopData.transaction_number) {
       return res.status(400).json({ error: "Transaction Number is required" });
@@ -79,9 +79,13 @@ router.post("/cancelReplaceTransaction", async (req, res) => {
       : 1;
 
     // Create new transaction data
+    // if (!newBopData.contact_details) {
+    //   return res.status(400).json({ error: "contact_details is required" });
+    // }
     const newTransactionData = {
       ...newBopData,
       transaction_attempt: newTransactionAttempt,
+      contact_details: newBopData.contact_details || "something",
     };
 
     // Create a new transaction record
@@ -226,7 +230,6 @@ router.get("/:transactionNumber", async (req, res) => {
 
 // router.post("/release-bopdata", async (req, res) => {
 
-
 //   try {
 //     const { transaction_number, transaction_attempt, sap_status } = req.body;
 
@@ -268,9 +271,11 @@ router.post("/release-bopdata", async (req, res) => {
   try {
     const { transaction_number, transaction_attempt, sap_status } = req.body;
 
-    if (!transaction_number || !transaction_attempt) {
-      return res.status(400).json({ error: "Transaction number and attempt are required" });
-    }
+    // if (!transaction_number || !transaction_attempt) {
+    //   return res
+    //     .status(400)
+    //     .json({ error: "Transaction number and attempt are required" });
+    // }
 
     console.log(sap_status, transaction_attempt, transaction_number, "body");
 
@@ -280,11 +285,31 @@ router.post("/release-bopdata", async (req, res) => {
     });
 
     if (!existing) {
-      return res.status(404).json({ message: "No matching record found to update" });
+      return res
+        .status(404)
+        .json({ message: "No matching record found to update" });
     }
 
+    const bop_cd_data = {
+      transaction_number,
+      transaction_attempt,
+      reported_to_central_bank: "No",
+      reserve_bank_status: "Pending",
+      number_of_errors_central_bank: 0,
+      created_at: new Date(),
+      updated_at: new Date(),
+      reporting_date: new Date(),
+      response_received_date: new Date(),
+    };
+    const bob_cd = await db.forex_bop_cd.create(bop_cd_data);
+    console.log(bob_cd, "bob_cd");
     // Update the existing record
-    console.log(sap_status, 'rakshit ------->>>>', transaction_number, transaction_attempt)
+    console.log(
+      sap_status,
+      "rakshit ------->>>>",
+      transaction_number,
+      transaction_attempt
+    );
     // const [updatedCount] = await db.forex_bop.update(
     //   { sap_status,...existing.toJSON() },
     //   { where: { transaction_number, transaction_attempt } }
@@ -306,26 +331,13 @@ router.post("/release-bopdata", async (req, res) => {
     // }
 
     // Create related CD data only if update succeeded
-    const bop_cd_data = {
-      transaction_number,
-      transaction_attempt,
-      reported_to_central_bank: 'No',
-      reserve_bank_status: 'Pending',
-      number_of_errors_central_bank: 0,
-      created_at: new Date(),
-      updated_at: new Date(),
-      reporting_date: new Date(),
-      response_received_date: new Date(),
-    };
 
-    // const bob_cd = await db.forex_bop_cd.create(bop_cd_data);
-
-    res.status(200).json({ message: "Data released and CD created successfully" });
-
+    res
+      .status(200)
+      .json({ message: "Data released and CD created successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 module.exports = router;
